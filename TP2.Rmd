@@ -9,6 +9,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Exercice 1
 
+
 ```{r}
 n=20
 Xbar=c()
@@ -64,7 +65,7 @@ for (i in 1:1000) {
 hist(Xbar)
 ```
 
-Loi Gaussienne
+### Loi Gaussienne
 
 ```{r}
 Xbar = c()
@@ -177,11 +178,11 @@ for (i in 1:n)
 }
 
 ```
+
 ### La proportion de point dans la forme est de :
 ```{r}
 mean(Y)
 ```
-
 
 ### cette proportion rapporté a la surface est de :
 
