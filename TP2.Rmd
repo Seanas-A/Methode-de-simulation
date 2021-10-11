@@ -1,0 +1,191 @@
+---
+title: "TP2"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Exercice 1
+
+```{r}
+n=20
+Xbar=c()
+
+for (i in 1:1000) {
+  Xbar = c(Xbar , mean(rbinom(n = 20 , size = 1 , 0.4)) )
+}
+hist(Xbar)
+
+n=100
+Xbar=c()
+rbinom(n = 20 , size = 1 , 0.4)
+
+for (i in 1:1000) {
+  Xbar = c(Xbar , mean(rbinom(n = n , size = 1 , 0.4)) )
+}
+hist(Xbar)
+
+n=1000
+Xbar=c()
+rbinom(n = 20 , size = 1 , 0.4)
+
+for (i in 1:1000) {
+  Xbar = c(Xbar , mean(rbinom(n = n , size = 1 , 0.4)) )
+}
+hist(Xbar)
+```
+
+
+```{r}
+Xbar=c()
+n=20
+for (i in 1:1000) {
+  Xbar=c(Xbar, mean(runif(n)))
+}
+
+hist(Xbar)
+
+n=100
+Xbar=c()
+for (i in 1:1000) {
+  Xbar=c(Xbar, mean(runif(n)))
+}
+
+hist(Xbar)
+
+n=1000
+Xbar=c()
+for (i in 1:1000) {
+  Xbar=c(Xbar, mean(runif(n)))
+}
+
+hist(Xbar)
+```
+
+Loi Gaussienne
+
+```{r}
+Xbar = c()
+n = 20
+for (i in 1:1000){
+  Xbar = c(Xbar , mean (rnorm(n = n, mean = 3 , sd = 2)))
+}
+hist(Xbar)
+
+Xbar = c()
+n = 100
+for (i in 1:1000){
+  Xbar = c(Xbar , mean (rnorm(n = n, mean = 3 , sd = 2)))
+}
+hist(Xbar)
+
+Xbar = c()
+n = 1000
+for (i in 1:1000){
+  Xbar = c(Xbar , mean (rnorm(n = n, mean = 3 , sd = 2)))
+}
+hist(Xbar)
+
+```
+
+
+```{r}
+
+Xbar = c()
+n = 20
+for (i in 1:1000){
+  Xbar = c(Xbar , mean (rcauchy(n = n, location = 0 , scale = 1)))
+}
+hist(Xbar)
+
+Xbar = c()
+n = 100
+for (i in 1:1000){
+  Xbar = c(Xbar , mean (rcauchy(n = n, location = 0 , scale = 1)))
+}
+hist(Xbar)
+
+
+Xbar = c()
+n = 1000
+for (i in 1:1000){
+  Xbar = c(Xbar , mean (rcauchy(n = n, location = 0 , scale = 1)))
+}
+hist(Xbar)
+```
+# Exercice 2
+
+```{r}
+n = 1000
+
+x=rnorm(n = n , mean = 37 , sd = 2)
+
+#P(X>39)
+sum(x>39)/n
+
+#P(X<30)
+sum(x<30)/n
+
+#P(32<X<51)
+sum(x>30 & x<51)/n
+
+#On trie l'échantillon X
+x=sort(x)
+
+#On prend 88% des valeurs (centré)
+y=x[(n*0.06 -1):(n*0.94+1)]
+
+intervalle=c(y[1], y[length(y)])
+
+print(intervalle)
+
+quantile(x = x , probs = 0.06)
+
+quantile(x = x , probs = 0.94)
+
+```
+
+
+# Exercice 3
+
+# Exercice 4
+
+```{r}
+f=function(x){
+  y=((4*x)/((x*x)+1))+3
+  return (y)
+}
+
+g=function(x){
+  y=(x*x)-(1.2*x)+3
+  return (y)
+}
+
+n = 10000
+
+#prenons n points au hasard dans [0;2]*[2.5;5]
+E=matrix(c(runif(n, 0, 2),runif(n = n, 2.5 , 5)) , ncol = 2 , nrow = n)
+
+Y=c(1:n)
+
+
+for (i in 1:n)
+  {
+  Y[i] = (E[i,2]<f(E[i,1]))&(E[i,2]>g(E[i,1]))
+}
+
+```
+### La proportion de point dans la forme est de :
+```{r}
+mean(Y)
+```
+
+
+### cette proportion rapporté a la surface est de :
+
+```{r}
+mean(Y)*5
+```
+
