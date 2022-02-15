@@ -1,0 +1,399 @@
+---
+title: "TP noté "
+output: html_document
+author: "Anasse EL BOURACHDI"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Exercice 1 : Simulation de variable aléatoire
+
+```{r}
+#Création de la fonction f
+f=function(x){
+  return((2/pi)*sqrt(1-x^2))
+}
+```
+
+Le max de cette fonction f sur l'intervalle [-1;1] est pi/2
+
+La fonction que nous choisirons pour cette méthode des rejet sera la fonction de densité uniforme U(-1,1)
+
+La densité g de la loi uniforme est égale a 1/2 sur l'intervalle [-1;1]
+
+Le ration f/g est borné par la constante c=4/pi
+
+C'est à dire que f(x) <= c\*g(x) pour tout x dans [-1;1] ( avec f(0) = c\*g(0) )
+
+```{r}
+c=4/pi
+```
+
+Comme la fonction g est constante sur notre intervalle [-1,1] , c*g(x) est constante aussi.
+
+c\*g(x) = (4/pi)\*(1/2) = 2/pi
+
+Nous allons noté cette nouvelle constante c2 = c\*g(x) pour x dans [-1;1]
+
+```{r}
+c2=2/pi #=c*g(x)
+```
+
+
+
+
+### 1) En utilisant la méthode du rehet, générer N=1000 réalisations d'une variable aléatoire X de densité f
+
+```{r}
+
+N=1000 #nombre de tirage de densité f
+Y=c() # c'est le vecteur où seront stockés les tirages de densité f
+
+while (length(Y)<N) {
+  
+  ytemp = runif(n = 1, min = -1, max = 1) # on prend un "y temporaire" dans l'intervalle [-1;1] selon la loi uniforme U(-1,1)
+  
+  U = runif(n = 1, min = 0, max = 1) # on défini un U tiré uniformément selon U(0;1) tel que le ratio f(y)/c*g(y) devra etre plus petit que U
+  
+  if(U<((f(ytemp))/c2)){Y=c(Y,ytemp)} #si le ratio est plus petit que U, on valide le "y temporaire" comme tirage selon la loi f
+  
+}
+```
+
+### 2) Tracer l'histogramme de l'échantillon simulé et la courbe de la densité de X
+
+```{r}
+hist(x = Y,breaks = 15, freq = FALSE, xlim = c(-1,1)) #On trace l'histogramme de du vecteur Y (c'est celui où il y a tout les tirages de densité f)
+curve(f(x), add = TRUE) #On superpose la courbe de densité f à l'histogramme
+```
+
+
+### 3) En déduire une estimation de p=P(X>0.5)
+
+Voici un estimateur de P(X>0.5)
+
+```{r}
+estimateur1=mean(Y>0.5); estimateur1 # Voici un estimateur de P(X>0.5)
+```
+### 4) Estimer la variance de cette estimation et en déduire un intervalle de confiance de 95% pour p
+
+Ici nous avons plusieurs possibilités: <br/><br/>
+  1) On peut relancer plusieurs fois cet échantillons de 1000 réalisation puis calculer plusieurs fois P(X>0.5) (méthode lente) <br/>
+  2) On peut utiliser notre échantillon déjà existant et faire du rééchantillonnage avec Bootstrap (resampling, donc plus rapide) <br/>
+  3) On peut aussi faire du rééchantillonnage avec Jacknife (resampling donc plus rapide) <br/>
+
+Nous allons commencer avec la première méthode
+
+Pour la méthode 1, je créer la fonction "generer" qui génére N tirage de densité f comme dans l'exercice 1(par défaut N=1000)
+
+```{r}
+
+#création de la fonction qui génère 1000 tirage de densité f
+
+generer=function(N=1000){
+  Y=c()
+  
+  while (length(Y)<N) {
+    
+    ytemp = runif(n = 1, min = -1, max = 1)
+    
+    U = runif(n = 1, min = 0, max = 1)
+    
+    if(U<((f(ytemp))/c2)){Y=c(Y,ytemp)}
+    
+  }
+  return(Y)
+}
+```
+
+Ensuite je réalise plusieurs fois 1000 tirage (par exemple 1000 fois)
+
+```{r}
+Y2=c() #le vecteur Y2 contiendra les 1000 échantillons de 1000 tirage (donc 1'000'000 tirrages)
+for (i in 1:1000){
+  Y2=c(Y2,generer())
+}
+M2=matrix(data = Y2>0.5 ,nrow = 1000, ncol = 1000) # On organise tout les tirages de Y2 dans une matrice M2 1000*1000 où chaque colonne représente un echantillon de 1000 tirage (qui vaut FALSE si X<0.5, et TRUE si X>0.5)
+
+estimateurs.de.p = apply(M2 , MARGIN = 2 , FUN = mean) # on calcule la moyenne empirique de chaque colonne pour avoir 1000 estimation de p=P(X>0.5) et on stock toute ces estimation dans le vecteur estimateurs.de.p
+
+```
+
+Maintenant nous avons 1000 estimations de p=P(X>0.5), on peut estimer la variance de cet estimation (la variance empirique des 1000 estimations)
+
+```{r}
+v=var(estimateurs.de.p) #on utilise la fonction var de R
+```
+
+Pour obtenir un intervalle de confiance à 95%, on peut le faire de 2 façons: <br/>
+  1) On utilise la moyenne et la variance de des estimateurs (la répartition suit une loi normal de moyenne m et variance v) <br/> 
+  2) On tri tout les estimateur par ordre croissant, on retire les 25 premier et 25 dernier, puis on prend les bornes <br/>
+
+```{r}
+m=mean(estimateurs.de.p)
+
+#Première façon :
+qnorm(p = 0.025 , mean = m , sd = sqrt(v))
+qnorm(p = 0.975 , mean = m , sd = sqrt(v))
+
+
+#Deuxième façon :
+
+A=sort(estimateurs.de.p) # On tri dans l'odre croissant
+min(A[-(c(1:25,975:1000))]) # On prend la borne inf
+max(A[-(c(1:25,975:1000))]) # On prend la borne sup
+
+
+```
+
+Nous obtenons l'intervalle [0.171 ; 0.22]
+
+### 5) Calculer un intervalle de confiance (au même niveau de risque) avec N = 10000 réalisations et comparer avec l'intervalle de confiance précédent.
+
+Pour cette question, je vais utiliser le bootstrap pour générer plusieurs echantillons de taille 10'000 (ce qui sera plus rapide pour, et donc plus efficace que la méthode 1 pour les ordinateurs lents ) <br/> <br/>
+
+J'aurai aussi pu utiliser jacknife, mais il est plus facile de mettre en place un Bootstrap grace a la fonction "sample" de R (de toute façon les deux méthodes sont assez similaire donc, pour des questions de lisibilité, j'utilise la méthode la plus facile à mettre en place)
+
+```{r}
+Y3=c() #le vecteur Y3 contiendra les 1'000 échantillons de 10'000 tirage
+pool=generer(10000) # On genere un echantillons avec lequel on va rééchantillonner 1'000 échantillons de taille 10'000.
+
+for(i in 1:1000){
+  Y3=c(Y3,sample(x = pool, size = 10000, replace = TRUE))
+}
+```
+
+
+```{r}
+# On range nos 1'000 echantillons de 10'000 tirage dans la matrice M3 (comme à la question précédente), chaque collone représente un echantillons de 10'000.
+
+M3 = matrix(data = Y3>0.5 , nrow = 10000, ncol = 1000)
+
+# On met tout les estimateur dans 
+
+estimateurs.de.p.2 = apply(M3 , MARGIN = 2 , FUN = mean)
+
+```
+
+Comme à la question précédente, on a deux façon de calculer l'intervalle de confiance:
+  1) On utilise la moyenne et la variance de des estimateurs (la répartition suit une loi normal de moyenne m2 et variance v2) <br/>
+  2) On tri tout les estimateur par ordre croissant, on retire les 25 premier et 25 dernier, puis on prend les bornes <br/> <br/>
+
+
+```{r}
+v2=var(estimateurs.de.p.2)
+m2=mean(estimateurs.de.p)
+
+#Première façon :
+qnorm(p = 0.025 , mean = m2 , sd = sqrt(v2))
+qnorm(p = 0.975 , mean = m2 , sd = sqrt(v2))
+
+
+#Deuxième façon :
+
+D=sort(estimateurs.de.p.2) # On tri dans l'odre croissant
+min(D[-(c(1:25,975:1000))]) # On prend la borne inf
+max(D[-(c(1:25,975:1000))]) # On prend la borne sup
+
+
+```
+On obtient un intervalle de confiance d'environ [0.188 ; 0.203] <br/> <br/>
+
+##### Conclusion de la question 5
+
+L'intervalle de confiance est plus petit en prenant N=10'000 que N=1'000 <br/>
+L'intervalle pour N=10'000 est inclus dans l'intervalle pour n=1'000 donc on a une estimation plus précise pour N=10'000 (ce qui semble logique)
+
+
+## Exercice : 2 Encore une approximation de pi
+
+Énoncé: On tire un entier K au hasard, uniformement entre 1 et n. On sait que la probabilité que k ne soit pas divisible par le carré d'un nombre entier tend vers 6/(pi^2)
+En déduire une approximation de pi <br/><br/>
+
+#### Je propose 2 méthode pour résoudre cet exercice
+
+##### méthode 1: (avec les nombre premiers)
+
+Si k est divisible par le carré d'un nombre, alors il est aussi divisible par le carré d'un nombre premier.
+
+
+```{r}
+
+#Pour cette méthode, j'utilise une liste de nombre premier disponible dans la library "primes"
+#Donc il faut installer au préalable le package Primes sur R avec la commande suivante :
+#install.packages("primes")
+
+library(primes)
+
+n= 100000
+k=1:n
+L=rep(0,n) # ici seront indiqué par "1" tout les nombre qui ne sont pas divisible par le carré d'un entier
+
+Nombre.Premier=primes[primes<sqrt(n+1)] #On créer un vecteur rempli de nombre premier plus petit que sqrt(n+1)
+
+Nombre.Premier.carre=Nombre.Premier^2 # On prend le carré de tout les nombres premiers précédemment choisi
+
+for (i in 1:length(k)){
+  for (j in Nombre.Premier.carre){
+    if (k[i]%%j==0){
+      L[i]=1
+    }
+  }
+}
+
+# Dans cette boucle, on prend au fur et à mesure tout les k entier entre 1 et n. Puis on fait le test de divisibilité par le carré d'un nombre premier. Si il est divisible, alors on note "1" dans le vecteur "L". Sinon, on laisse le "0" par défaut dans ke vecteur "L"
+
+appoximation = sqrt(6/(1-mean(L))); appoximation
+```
+
+Grace à cette méthode on obtient une approximation très rapide de pi car on fait le test seulement sur les nombres premiers. <br/>
+
+Cependant, cette technique est "limité" par le package Primes. En effet, ce package contient seulement les nombres premiers compris entre 2 et 7919. <br/>
+
+7919^2 = 62'710'561 <br/>
+
+Donc on ne peut pas aller au dela de k=62'710'561  (cela reste amplement sufisant pour notre exercice)
+
+
+##### méthode 2: (avec tout)
+
+La méthode 2 est similaire à la premiere, sauf qu'on test tout les nombre au lieu de traiter seulement les nombres premiers. <br/>
+Avantage: On peut donner l'instruction à l'ordinateur d'aller aussi loins que l'on veut <br/>
+inconvénient: l'algorithme est plus lent car il test tout les nombres jusqua sqrt(n) <br/>
+
+
+```{r}
+n=100000
+
+tout.les.nombre=c(2:sqrt(n+1)) # On prend tout les nombre entiers plus petit que sqrt(n+1)
+carre=tout.les.nombre^2 #On élève au carré
+
+carre=carre[carre<=n]
+k=1:n
+L2=rep(0,n)
+
+for (i in 1:n){
+  for (j in carre){
+    if (k[i]%%j==0){
+      L2[i]=1
+    }
+  }
+}
+
+# Dans cette boucle, on prend au fur et à mesure tout les k entier entre 1 et n. Puis on fait le test de divisibilité par le carré d'un nombre entier. Si il est divisible, alors on note "1" dans le vecteur "L". Sinon, on laisse le "0" par défaut dans ke vecteur "L"
+
+appoximation2 = sqrt(6/(1-mean(L2))); appoximation2
+
+```
+
+
+## Exercice 3 : Un modèle de Galton-Watson
+
+
+##### Création de la fonction GW()
+
+```{r}
+GW = function(N = 100, p0 = 0.2, p1 = 0.6){
+  
+  p2=1-p0-p1 #Nous calculons la probabilité d'avoir 2 enfants
+  X=1 # On initialise X1 à 1 comme demandé dans l'énoncé.
+  Historique=c(X)
+  extinct=FALSE
+  
+  for (i in 1:N){
+    enfant.male = c()
+    
+    for (j in 1:X){
+      enfant.male = c(enfant.male, sample(x = c(0,1,2), size = 1, prob = c(p0,p1,p2)))
+    }
+    
+    X=sum(enfant.male)
+    if(X==0){extinct=TRUE}
+    
+    #Si le nombre d'enfant mâle d'une génération atteint 0, l'historique du patronyme sera égale à 0 à partir de l'inxtinction
+    
+    if (extinct) {Historique = c(Historique,0)}
+    else {Historique = c(Historique,X)}
+  }
+  return(Historique)
+}
+
+```
+
+### 1) Calcul de m
+
+
+```{r}
+m = 0.2*0 + 0.6*1 + 0.2*2; m
+```
+
+On a que m=1
+
+### 2) Simuler 5 réalisations du processus avec N=100 et représenter sur un même graphique
+
+
+```{r}
+sim1=GW()
+sim2=GW()
+sim3=GW()
+sim4=GW()
+sim5=GW()
+
+borne.du.graph = c( min(c(sim1,sim2,sim3,sim4,sim5)) , max(c(sim1,sim2,sim3,sim4,sim5)) ) #On définit les limites du graph sur l'axe Y
+
+plot(x = sim1, type = "l", col="red", ylim = borne.du.graph , lwd=4)
+lines(x = sim2, col="blue", lwd=4)
+lines(x = sim3, col="green", lwd=4)
+lines(x = sim4, col="pink", lwd=4)
+lines(x = sim5, col="black", lwd=4)
+```
+
+
+### 3) Proposer une méthode de Monté Carlo pour estimer la probabilité d'extinction d'un nom de famille
+
+Je vais créer une fonction GW2 qui sera une version modifié de GW() <br/>
+
+La fonction GW2 prend en argument N, p0 et p1 (comme GW classique).
+En sorti, la fonction donnera TRUE ou FALSE si le patronyme s'est eteint ou non.
+
+```{r}
+GW2 = function(N = 100, p0 = 0.2, p1 = 0.6){
+  
+  p2=1-p0-p1 
+  X=1
+  extinct=FALSE
+  
+  for (i in 1:N){
+    enfant.male = c()
+    
+    for (j in 1:X){
+      enfant.male = c(enfant.male, sample(x = c(0,1,2), size = 1, prob = c(p0,p1,p2)))
+    }
+    
+    X=sum(enfant.male)
+    if(X==0){return(FALSE)} # le nom s'est éteint
+    
+  }
+  return(TRUE) #le nom ne s'est pas éteint
+}
+
+```
+
+##### maintenant que la fonction est créé, on va simuler 10'000 fois la fonction et on calculera la probabilité que le nom s'éteint
+
+```{r}
+Monte.Carlo.Patronyme=c()
+for (i in 1:10000){
+  Monte.Carlo.Patronyme=c(Monte.Carlo.Patronyme, GW2())
+}
+
+proba.extinction = 1 - mean(Monte.Carlo.Patronyme); proba.extinction
+```
+
+
+#### Conclusion exercice 3
+
+La probabilité d'extinction est d'environ 95%
+

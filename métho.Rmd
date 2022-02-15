@@ -1,0 +1,51 @@
+---
+title: "Métho"
+author: "Anasse EL BOURACHDI"
+date: "13/01/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+X=rnorm(n = 1000, mean = 0 , sd = 1)
+Y=X
+
+for (i in 1:length(Y)) {
+  
+  Y[i] = X[i] + rnorm(n = 1, mean = 0 , sd = 1)
+  
+}
+
+plot(X,Y)
+
+Regress = lm(Y~X)
+
+A = Regress$coefficients[1]
+B = Regress$coefficients[2]
+
+abline(a = A, b = B)
+
+```
+
+
+```{r}
+
+selecteur = sample(x = 1:1000, size = 20, replace = TRUE)
+
+y1 = Y[selecteur]
+x1 = X[selecteur]
+
+r1 = lm(y1~x1)
+
+a1 = r1[1]
+b1 = r1[2]
+
+plot(x1,y1)
+
+abline(a = a1, b = b1,)
+
+```
+
