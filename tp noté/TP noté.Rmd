@@ -17,7 +17,7 @@ f=function(x){
 }
 ```
 
-Le max de cette fonction f sur l'intervalle [-1;1] est pi/2
+Le max de cette fonction f sur l'intervalle [-1;1] est pi/2 
 
 La fonction que nous choisirons pour cette méthode des rejet sera la fonction de densité uniforme U(-1,1)
 
