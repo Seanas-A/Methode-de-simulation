@@ -5,7 +5,7 @@ author: "Anasse EL BOURACHDI"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE) 
 ```
 
 # Exercice 1 : Simulation de variable aléatoire
